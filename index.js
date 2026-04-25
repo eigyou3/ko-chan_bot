@@ -2,9 +2,9 @@ const { Client, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
 const { createCanvas, GlobalFonts } = require('@napi-rs/canvas');
 const path = require('path');
 
-const fontPath = path.join(__dirname, 'node_modules', '@fontsource', 'noto-sans-jp', 'files', 'noto-sans-jp-japanese-400-normal.woff');
+const fontPath = path.join(__dirname, 'node_modules', '@fontsource', 'noto-serif-jp/files/noto-serif-jp-japanese-400-normal.woff');
 try {
-  GlobalFonts.registerFromPath(fontPath, 'NotoSansJP');
+  GlobalFonts.registerFromPath(fontPath, 'NotoSerifJP');
   console.log('✅ フォント読み込み成功');
 } catch (e) {
   console.warn('⚠️ フォント読み込み失敗:', e.message);
@@ -64,7 +64,7 @@ function generateWelcomeImage({ date, time, name }) {
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext('2d');
 
-  const serif = 'NotoSansJP';
+  const serif = 'NotoSerifJP';
 
   // 背景
   ctx.fillStyle = '#F7F5F0';
@@ -100,14 +100,14 @@ function generateWelcomeImage({ date, time, name }) {
   ctx.fillStyle = '#221E18';
   ctx.fillText(name, W / 2, 730);
 
-  // 名前の下ライン
+  // 名前の下ライン（余裕を持たせる）
   ctx.fillStyle = '#C8BEA8';
   ctx.fillRect(W / 2 - 196, 824, 392, 1.5);
 
   // 社名
   ctx.font = `400 40px "${serif}"`;
   ctx.fillStyle = '#A89878';
-  ctx.fillText('KOMAI HOME', W / 2, 916);
+  ctx.fillText('- KOMAI HOME -', W / 2, 916);
 
   return canvas.toBuffer('image/png');
 }
