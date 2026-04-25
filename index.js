@@ -136,8 +136,7 @@ async function generateWelcomeImage({ date, time, name }, W = 1920, H = 1080) {
   // --- メッセージ（改行対応） ---
   ctx.font = `100 ${pt(24)}px "${THIN}"`;
   ctx.fillStyle = '#404040';
-  const lines = WELCOME_MESSAGE.split('
-');
+  const lines = WELCOME_MESSAGE.split('\n');
   const lineH = pt(16) * 1.9;
   const msgStartY = 670;
   lines.forEach((line, i) => {
