@@ -2,7 +2,6 @@ const { Client, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
 const { createCanvas, GlobalFonts } = require('@napi-rs/canvas');
 const path = require('path');
 
-// Noto Sans JP フォント登録
 const fontPath = path.join(__dirname, 'node_modules', '@fontsource', 'noto-sans-jp', 'files', 'noto-sans-jp-japanese-400-normal.woff');
 try {
   GlobalFonts.registerFromPath(fontPath, 'NotoSansJP');
@@ -51,59 +50,64 @@ function parseVisitorMessage(text) {
   }
 
   return {
-    date: `${month}月${day}日`,
+    date: `${month}/${day}`,
     time: `${hour}:${minute}`,
     name: nameMatch[1],
   };
 }
 
 // =============================
-// 画像生成（シンプル・ライト）
+// 画像生成
 // =============================
 function generateWelcomeImage({ date, time, name }) {
   const W = 1920, H = 1080;
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext('2d');
 
-  const font = 'NotoSansJP';
+  const serif = 'NotoSansJP';
 
-  // 背景（オフホワイト）
-  ctx.fillStyle = '#f5f5f3';
+  // 背景
+  ctx.fillStyle = '#F7F5F0';
   ctx.fillRect(0, 0, W, H);
 
-  // 細いボーダー
-  ctx.strokeStyle = '#ccccc8';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(60, 60, W - 120, H - 120);
+  // 外枠
+  ctx.strokeStyle = '#C8BEA8';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(68, 68, W - 136, H - 136);
+
+  // 内枠
+  ctx.strokeStyle = '#E0D8C8';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(90, 90, W - 180, H - 180);
 
   // WELCOME
-  ctx.font = `300 52px "${font}"`;
+  ctx.font = `400 52px "${serif}"`;
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#9a9a94';
-  ctx.fillText('WELCOME', W / 2, 320);
+  ctx.fillStyle = '#A89878';
+  ctx.fillText('WELCOME', W / 2, 362);
 
-  // 区切り線
-  ctx.fillStyle = '#d8d8d4';
-  ctx.fillRect(W / 2 - 240, 355, 480, 1);
+  // WELCOMEの下ライン
+  ctx.fillStyle = '#C8BEA8';
+  ctx.fillRect(W / 2 - 196, 388, 392, 1.5);
 
   // 日付・時間
-  ctx.font = `300 44px "${font}"`;
-  ctx.fillStyle = '#7a7a74';
-  ctx.fillText(`${date}　${time}`, W / 2, 450);
+  ctx.font = `400 56px "${serif}"`;
+  ctx.fillStyle = '#7A6E60';
+  ctx.fillText(`${date}　${time}`, W / 2, 524);
 
-  // お名前（メイン）
-  ctx.font = `300 140px "${font}"`;
-  ctx.fillStyle = '#2a2a28';
-  ctx.fillText(name, W / 2, 660);
+  // 名前
+  ctx.font = `400 164px "${serif}"`;
+  ctx.fillStyle = '#221E18';
+  ctx.fillText(name, W / 2, 730);
 
-  // 区切り線（下）
-  ctx.fillStyle = '#d8d8d4';
-  ctx.fillRect(W / 2 - 240, 710, 480, 1);
+  // 名前の下ライン
+  ctx.fillStyle = '#C8BEA8';
+  ctx.fillRect(W / 2 - 196, 824, 392, 1.5);
 
   // 社名
-  ctx.font = `300 32px "${font}"`;
-  ctx.fillStyle = '#aaaaaa';
-  ctx.fillText('KOMAI HOME', W / 2, 800);
+  ctx.font = `400 40px "${serif}"`;
+  ctx.fillStyle = '#A89878';
+  ctx.fillText('KOMAI HOME', W / 2, 916);
 
   return canvas.toBuffer('image/png');
 }
