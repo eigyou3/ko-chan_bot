@@ -81,7 +81,7 @@ function generateWelcomeImage({ date, time, name }) {
   ctx.strokeRect(90, 90, W - 180, H - 180);
 
   // WELCOME
-  ctx.font = `400 52px "${serif}"`;
+  ctx.font = `400 80px "${serif}"`;
   ctx.textAlign = 'center';
   ctx.fillStyle = '#A89878';
   ctx.fillText('WELCOME', W / 2, 362);
@@ -96,7 +96,7 @@ function generateWelcomeImage({ date, time, name }) {
   ctx.fillText(`${date}　${time}`, W / 2, 524);
 
   // 名前
-  ctx.font = `400 164px "${serif}"`;
+  ctx.font = `400 110px "${serif}"`;
   ctx.fillStyle = '#221E18';
   ctx.fillText(name, W / 2, 730);
 
@@ -107,7 +107,7 @@ function generateWelcomeImage({ date, time, name }) {
   // 社名
   ctx.font = `400 40px "${serif}"`;
   ctx.fillStyle = '#A89878';
-  ctx.fillText('- komai home -', W / 2, 916);
+  ctx.fillText('KOMAI HOME', W / 2, 916);
 
   return canvas.toBuffer('image/png');
 }
@@ -135,7 +135,7 @@ client.on('messageCreate', async (message) => {
   try {
     const imgBuffer = generateWelcomeImage(parsed);
     const attachment = new AttachmentBuilder(imgBuffer, { name: 'welcome.png' });
-    await message.channel.send({ files: [attachment] });
+    await message.reply({ files: [attachment] });
     await message.delete();
   } catch (err) {
     console.error(err);
