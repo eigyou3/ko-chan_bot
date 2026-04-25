@@ -169,10 +169,8 @@ client.on('messageCreate', async (message) => {
   }
 
   try {
-    const fullBuffer  = await generateWelcomeImage(parsed, 1920, 1080);
-    const thumbBuffer = await generateWelcomeImage(parsed, 960, 540);
-    const fullFile  = new AttachmentBuilder(fullBuffer,  { name: 'welcome.png' });
-    const thumbFile = new AttachmentBuilder(thumbBuffer, { name: 'welcome_thumb.png' });
+    const fullBuffer = await generateWelcomeImage(parsed, 1920, 1080);
+    const fullFile  = new AttachmentBuilder(fullBuffer, { name: 'welcome.png' });
 
     // 投稿者のロールカラーを取得
     const member = message.member;
@@ -185,9 +183,9 @@ client.on('messageCreate', async (message) => {
         `${parsed.date.replace('/', '月')}日 ${parsed.time.replace(':', '時')} ${parsed.name}のウェルカムを作成したよ！\n\n` +
         `<@&${NOTIFY_ROLE_ID}> みんなにも共有しておくね！`
       )
-      .setImage('attachment://welcome_thumb.png');
+      .setImage('attachment://welcome.png');
 
-    await message.reply({ embeds: [embed], files: [fullFile, thumbFile] });
+    await message.reply({ embeds: [embed], files: [fullFile] });
   } catch (err) {
     console.error(err);
     await message.reply('❌ 画像生成中にエラーが発生しました');
