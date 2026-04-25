@@ -120,10 +120,10 @@ function generateWelcomeImage({ date, time, name }) {
   // --- 名前 ---
   ctx.font = `100 ${pt(52)}px "${THIN}"`;
   ctx.fillStyle = '#404040';
-  ctx.fillText(name, W / 2, 570);
+  ctx.fillText(name, W / 2, 540);
 
   // --- メッセージ（改行対応） ---
-  ctx.font = `100 ${pt(32)}px "${THIN}"`;
+  ctx.font = `100 ${pt(24)}px "${THIN}"`;
   ctx.fillStyle = '#404040';
   const lines = WELCOME_MESSAGE.split('\n');
   const lineH = pt(16) * 1.9;
