@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, AttachmentBuilder, EmbedBuilder } = require('discord.js');
 const { createCanvas, GlobalFonts } = require('@napi-rs/canvas');
 const path = require('path');
 const { loadImage } = require('@napi-rs/canvas');
@@ -19,7 +19,8 @@ try {
 // カスタマイズ設定
 // ==============================
 const COMPANY_NAME = '- KOMAI HOME -';
-const BG_OPACITY = 0.3; // 背景画像の透過度（0.0〜1.0）
+const NOTIFY_ROLE_ID = '1496147336043298866';
+const BG_OPACITY = 0.08; // 背景画像の透過度（0.0〜1.0）
 const WELCOME_MESSAGE = 'ご来場お待ちしておりました。\n担当スタッフがすぐにご案内いたします。';
 
 // ==============================
@@ -76,7 +77,7 @@ function parseVisitorMessage(text) {
 // ==============================
 async function generateWelcomeImage({ date, time, name }) {
   // 96dpiで60pt = 80px、16pt = 21px、44pt = 59px
-  const W = 1920, H = 1080;
+  const W = 960, H = 540;
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext('2d');
 
@@ -175,7 +176,21 @@ client.on('messageCreate', async (message) => {
   try {
     const imgBuffer = await generateWelcomeImage(parsed);
     const attachment = new AttachmentBuilder(imgBuffer, { name: 'welcome.png' });
-    await message.reply({ files: [attachment] });
+
+    // 投稿者のロールカラーを取得
+    const member = message.member;
+    const roleColor = member?.roles?.color?.hexColor ?? '#808080';
+
+    const embed = new EmbedBuilder()
+      .setColor(roleColor)
+      .setDescription(
+        `<@${message.author.id}> !\n` +
+        `${parsed.date.replace('/', '月')}日 ${parsed.time.replace(':', '時')} ${parsed.name}のウェルカムを作成したよ！\n\n` +
+        `<@&${NOTIFY_ROLE_ID}> みんなにも共有しておくね！`
+      )
+      .setImage('attachment://welcome.png');
+
+    await message.reply({ embeds: [embed], files: [attachment] });
   } catch (err) {
     console.error(err);
     await message.reply('❌ 画像生成中にエラーが発生しました');
