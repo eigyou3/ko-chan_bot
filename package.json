@@ -1,0 +1,17 @@
+{
+  "name": "visitor-welcome-bot",
+  "version": "1.0.0",
+  "description": "来場者アナウンス画像生成 Discord Bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.99",
+    "@napi-rs/canvas": "^0.1.53",
+    "discord.js": "^14.26.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
