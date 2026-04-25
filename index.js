@@ -101,29 +101,29 @@ function generateWelcomeImage({ date, time, name }) {
   ctx.textAlign = 'center';
 
   // --- WELCOME（Black × 2枚重ね、50%透過）---
-  const wSize = pt(60);
+  const wSize = pt(80);
   ctx.font = `900 ${wSize}px "${BLACK}"`;
 
   // 1枚目（薄め）
-  ctx.fillStyle = 'rgba(64, 64, 64, 0.35)';
-  ctx.fillText('Welcome', W / 2 + 6, 310 + 6);
+  ctx.fillStyle = 'rgba(64, 64, 64, 0.50)';
+  ctx.fillText('Welcome', W / 2 + 6, 310);
 
   // 2枚目（通常）
   ctx.fillStyle = 'rgba(64, 64, 64, 0.50)';
   ctx.fillText('Welcome', W / 2, 310);
 
   // --- 日付・時間 ---
-  ctx.font = `100 ${pt(16)}px "${THIN}"`;
+  ctx.font = `100 ${pt(32)}px "${THIN}"`;
   ctx.fillStyle = '#404040';
   ctx.fillText(`${date}　${time}`, W / 2, 430);
 
   // --- 名前 ---
-  ctx.font = `100 ${pt(44)}px "${THIN}"`;
+  ctx.font = `100 ${pt(52)}px "${THIN}"`;
   ctx.fillStyle = '#404040';
   ctx.fillText(name, W / 2, 570);
 
   // --- メッセージ（改行対応） ---
-  ctx.font = `100 ${pt(16)}px "${THIN}"`;
+  ctx.font = `100 ${pt(32)}px "${THIN}"`;
   ctx.fillStyle = '#404040';
   const lines = WELCOME_MESSAGE.split('\n');
   const lineH = pt(16) * 1.9;
