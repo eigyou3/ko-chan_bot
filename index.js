@@ -136,7 +136,6 @@ client.on('messageCreate', async (message) => {
     const imgBuffer = generateWelcomeImage(parsed);
     const attachment = new AttachmentBuilder(imgBuffer, { name: 'welcome.png' });
     await message.reply({ files: [attachment] });
-    await message.delete();
   } catch (err) {
     console.error(err);
     await message.reply('❌ 画像生成中にエラーが発生しました');
