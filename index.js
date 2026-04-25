@@ -103,7 +103,7 @@ function generateWelcomeImage({ date, time, name }) {
   // 社名
   ctx.font = `300 32px "${font}"`;
   ctx.fillStyle = '#aaaaaa';
-  ctx.fillText('YOUR COMPANY NAME', W / 2, 800);
+  ctx.fillText('KOMAI HOME', W / 2, 800);
 
   return canvas.toBuffer('image/png');
 }
