@@ -107,7 +107,7 @@ function generateWelcomeImage({ date, time, name }) {
   // 社名
   ctx.font = `400 40px "${serif}"`;
   ctx.fillStyle = '#A89878';
-  ctx.fillText('- KOMAI HOME -', W / 2, 916);
+  ctx.fillText('- komai home -', W / 2, 916);
 
   return canvas.toBuffer('image/png');
 }
@@ -135,10 +135,8 @@ client.on('messageCreate', async (message) => {
   try {
     const imgBuffer = generateWelcomeImage(parsed);
     const attachment = new AttachmentBuilder(imgBuffer, { name: 'welcome.png' });
-    await message.reply({
-      content: `📋 ${parsed.date} ${parsed.time} ${parsed.name} の来場画像を生成しました`,
-      files: [attachment],
-    });
+    await message.channel.send({ files: [attachment] });
+    await message.delete();
   } catch (err) {
     console.error(err);
     await message.reply('❌ 画像生成中にエラーが発生しました');
