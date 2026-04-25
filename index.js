@@ -2,14 +2,27 @@ const { Client, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
 const { createCanvas, GlobalFonts } = require('@napi-rs/canvas');
 const path = require('path');
 
-const fontPath = path.join(__dirname, 'node_modules', '@fontsource', 'noto-serif-jp/files/noto-serif-jp-japanese-400-normal.woff');
+// ==============================
+// フォント登録
+// ==============================
+const fontBase = path.join(__dirname, 'node_modules', '@fontsource', 'noto-sans-jp', 'files');
 try {
-  GlobalFonts.registerFromPath(fontPath, 'NotoSerifJP');
+  GlobalFonts.registerFromPath(path.join(fontBase, 'noto-sans-jp-japanese-900-normal.woff'), 'NotoSansJP-Black');
+  GlobalFonts.registerFromPath(path.join(fontBase, 'noto-sans-jp-japanese-100-normal.woff'), 'NotoSansJP-Thin');
   console.log('✅ フォント読み込み成功');
 } catch (e) {
   console.warn('⚠️ フォント読み込み失敗:', e.message);
 }
 
+// ==============================
+// カスタマイズ設定
+// ==============================
+const COMPANY_NAME = '- KOMAI HOME -';
+const WELCOME_MESSAGE = 'ご来場お待ちしておりました。\n担当スタッフがすぐにご案内いたします。';
+
+// ==============================
+// Discord クライアント
+// ==============================
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -18,9 +31,9 @@ const client = new Client({
   ],
 });
 
-// =============================
+// ==============================
 // テキストパース
-// =============================
+// ==============================
 function parseVisitorMessage(text) {
   const normalized = text
     .replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
@@ -56,65 +69,80 @@ function parseVisitorMessage(text) {
   };
 }
 
-// =============================
+// ==============================
 // 画像生成
-// =============================
+// ==============================
 function generateWelcomeImage({ date, time, name }) {
+  // 96dpiで60pt = 80px、16pt = 21px、44pt = 59px
   const W = 1920, H = 1080;
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext('2d');
 
-  const serif = 'NotoSerifJP';
+  const BLACK = 'NotoSansJP-Black';
+  const THIN  = 'NotoSansJP-Thin';
+
+  // px換算（1pt = 96/72px）
+  const pt = v => Math.round(v * 96 / 72);
 
   // 背景
-  ctx.fillStyle = '#F7F5F0';
+  ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, W, H);
 
   // 外枠
-  ctx.strokeStyle = '#C8BEA8';
+  ctx.strokeStyle = '#CCCCCC';
   ctx.lineWidth = 1.5;
-  ctx.strokeRect(68, 68, W - 136, H - 136);
+  ctx.strokeRect(40, 40, W - 80, H - 80);
 
   // 内枠
-  ctx.strokeStyle = '#E0D8C8';
+  ctx.strokeStyle = '#E8E8E8';
   ctx.lineWidth = 1;
-  ctx.strokeRect(90, 90, W - 180, H - 180);
+  ctx.strokeRect(56, 56, W - 112, H - 112);
 
-  // WELCOME
-  ctx.font = `400 80px "${serif}"`;
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#A89878';
-  ctx.fillText('WELCOME', W / 2, 362);
 
-  // WELCOMEの下ライン
-  ctx.fillStyle = '#C8BEA8';
-  ctx.fillRect(W / 2 - 196, 388, 392, 1.5);
+  // --- WELCOME（Black × 2枚重ね、50%透過）---
+  const wSize = pt(60);
+  ctx.font = `900 ${wSize}px "${BLACK}"`;
 
-  // 日付・時間
-  ctx.font = `400 56px "${serif}"`;
-  ctx.fillStyle = '#7A6E60';
-  ctx.fillText(`${date}　${time}`, W / 2, 524);
+  // 1枚目（薄め）
+  ctx.fillStyle = 'rgba(64, 64, 64, 0.35)';
+  ctx.fillText('Welcome', W / 2 + 6, 310 + 6);
 
-  // 名前
-  ctx.font = `400 110px "${serif}"`;
-  ctx.fillStyle = '#221E18';
-  ctx.fillText(name, W / 2, 730);
+  // 2枚目（通常）
+  ctx.fillStyle = 'rgba(64, 64, 64, 0.50)';
+  ctx.fillText('Welcome', W / 2, 310);
 
-  // 名前の下ライン（余裕を持たせる）
-  ctx.fillStyle = '#C8BEA8';
-  ctx.fillRect(W / 2 - 196, 824, 392, 1.5);
+  // --- 日付・時間 ---
+  ctx.font = `100 ${pt(16)}px "${THIN}"`;
+  ctx.fillStyle = '#404040';
+  ctx.fillText(`${date}　${time}`, W / 2, 430);
 
-  // 社名
-  ctx.font = `400 40px "${serif}"`;
-  ctx.fillStyle = '#A89878';
-  ctx.fillText('KOMAI HOME', W / 2, 916);
+  // --- 名前 ---
+  ctx.font = `100 ${pt(44)}px "${THIN}"`;
+  ctx.fillStyle = '#404040';
+  ctx.fillText(name, W / 2, 570);
+
+  // --- メッセージ（改行対応） ---
+  ctx.font = `100 ${pt(16)}px "${THIN}"`;
+  ctx.fillStyle = '#404040';
+  const lines = WELCOME_MESSAGE.split('\n');
+  const lineH = pt(16) * 1.9;
+  const msgStartY = 670;
+  lines.forEach((line, i) => {
+    ctx.fillText(line, W / 2, msgStartY + i * lineH);
+  });
+
+  // --- フッター ---
+  ctx.font = `100 ${pt(16)}px "${THIN}"`;
+  ctx.fillStyle = '#BFBFBF';
+  ctx.fillText(COMPANY_NAME, W / 2, 980);
 
   return canvas.toBuffer('image/png');
 }
 
-// =============================
+// ==============================
 // Discord イベント
-// =============================
+// ==============================
 client.once('ready', () => {
   console.log(`✅ Bot起動: ${client.user.tag}`);
 });
