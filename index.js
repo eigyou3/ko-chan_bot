@@ -183,7 +183,7 @@ client.on('messageCreate', async (message) => {
       .setColor(roleColor)
       .setDescription(
         `<@${message.author.id}> !\n` +
-        `${parsed.date.replace('/', '月')}日 ${parsed.time.replace(':', '時')} ${parsed.name}のウェルカムを作成したよ！\n\n` +
+        `${parsed.date.replace('/', '月')}日 ${parsed.time.replace(':', '時')}分 ${parsed.name}のウェルカムを作成したよ！\n\n` +
         `<@&${NOTIFY_ROLE_ID}> みんなにも共有しておくね！`
       )
       .setImage('attachment://welcome.png');
