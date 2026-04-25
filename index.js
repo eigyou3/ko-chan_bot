@@ -82,6 +82,9 @@ async function generateWelcomeImage({ date, time, name }, W = 1920, H = 1080) {
   const BLACK = 'NotoSansJP-Black';
   const THIN  = 'NotoSansJP-Thin';
 
+  // px換算（1pt = 96/72px）
+  const pt = v => Math.round(v * 96 / 72);
+
   // 背景
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, W, H);
@@ -109,41 +112,42 @@ async function generateWelcomeImage({ date, time, name }, W = 1920, H = 1080) {
   ctx.textAlign = 'center';
 
   // --- WELCOME（Black × 2枚重ね、50%透過）---
-  const wSize = Math.round(H * 0.13);
-  ctx.font = `800 ${wSize}px "${BLACK}"`;
+  const wSize = pt(80);
+  ctx.font = `900 ${wSize}px "${BLACK}"`;
 
   // 1枚目（薄め）
   ctx.fillStyle = 'rgba(64, 64, 64, 0.50)';
-  ctx.fillText('Welcome', W / 2 + H*0.006, H*0.31);
+  ctx.fillText('Welcome', W / 2 + 6, 310);
 
   // 2枚目（通常）
   ctx.fillStyle = 'rgba(64, 64, 64, 0.50)';
-  ctx.fillText('Welcome', W / 2, H*0.31);
+  ctx.fillText('Welcome', W / 2, 310);
 
   // --- 日付・時間 ---
-  ctx.font = `100 ${Math.round(H*0.032)}px "${THIN}"`;
+  ctx.font = `100 ${pt(32)}px "${THIN}"`;
   ctx.fillStyle = '#404040';
-  ctx.fillText(`${date}　${time}`, W / 2, H*0.43);
+  ctx.fillText(`${date}　${time}`, W / 2, 430);
 
   // --- 名前 ---
-  ctx.font = `100 ${Math.round(H*0.052)}px "${THIN}"`;
+  ctx.font = `100 ${pt(52)}px "${THIN}"`;
   ctx.fillStyle = '#404040';
-  ctx.fillText(name, W / 2, H*0.54);
+  ctx.fillText(name, W / 2, 540);
 
   // --- メッセージ（改行対応） ---
-  ctx.font = `100 ${Math.round(H*0.024)}px "${THIN}"`;
+  ctx.font = `100 ${pt(24)}px "${THIN}"`;
   ctx.fillStyle = '#404040';
-  const lines = WELCOME_MESSAGE.split('\n');
-  const lineH = Math.round(H*0.016) * 1.9;
-  const msgStartY = H*0.67;
+  const lines = WELCOME_MESSAGE.split('
+');
+  const lineH = pt(16) * 1.9;
+  const msgStartY = 670;
   lines.forEach((line, i) => {
     ctx.fillText(line, W / 2, msgStartY + i * lineH);
   });
 
   // --- フッター ---
-  ctx.font = `100 ${Math.round(H*0.016)}px "${THIN}"`;
+  ctx.font = `100 ${pt(16)}px "${THIN}"`;
   ctx.fillStyle = '#BFBFBF';
-  ctx.fillText(COMPANY_NAME, W / 2, H*0.98);
+  ctx.fillText(COMPANY_NAME, W / 2, 980);
 
   return canvas.toBuffer('image/png');
 }
