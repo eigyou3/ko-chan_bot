@@ -8,7 +8,7 @@ const { loadImage } = require('@napi-rs/canvas');
 // ==============================
 const fontBase = path.join(__dirname, 'node_modules', '@fontsource', 'noto-sans-jp', 'files');
 try {
-  GlobalFonts.registerFromPath(path.join(fontBase, 'noto-sans-jp-japanese-900-normal.woff'), 'NotoSansJP-Black');
+  GlobalFonts.registerFromPath(path.join(fontBase, 'noto-serif-jp-japanese-900-normal.woff'), 'NotoSerifJP-Black');
   GlobalFonts.registerFromPath(path.join(fontBase, 'noto-sans-jp-japanese-100-normal.woff'), 'NotoSansJP-Thin');
   console.log('✅ フォント読み込み成功');
 } catch (e) {
