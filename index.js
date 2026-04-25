@@ -107,7 +107,7 @@ function generateWelcomeImage({ date, time, name }) {
   // 社名
   ctx.font = `400 40px "${serif}"`;
   ctx.fillStyle = '#A89878';
-  ctx.fillText('-KOMAI HOME-', W / 2, 916);
+  ctx.fillText('KOMAI HOME', W / 2, 916);
 
   return canvas.toBuffer('image/png');
 }
@@ -135,7 +135,7 @@ client.on('messageCreate', async (message) => {
   try {
     const imgBuffer = generateWelcomeImage(parsed);
     const attachment = new AttachmentBuilder(imgBuffer, { name: 'welcome.png' });
-    await message.channel.send({ files: [attachment] });
+    await message.reply({ files: [attachment] });
     await message.delete();
   } catch (err) {
     console.error(err);
