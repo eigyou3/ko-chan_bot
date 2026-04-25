@@ -153,7 +153,7 @@ function generateWelcomeImage({ date, time, name }) {
   ctx.font = '300 36px sans-serif';
   ctx.letterSpacing = '8px';
   ctx.fillStyle = 'rgba(180,200,255,0.5)';
-  ctx.fillText('YOUR COMPANY NAME', W / 2, 800);
+  ctx.fillText('- KOMAI HOME -', W / 2, 800);
 
   // --- 小装飾（コーナードット） ---
   const dots = [
