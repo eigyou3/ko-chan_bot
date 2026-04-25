@@ -75,17 +75,12 @@ function parseVisitorMessage(text) {
 // ==============================
 // 画像生成
 // ==============================
-async function generateWelcomeImage({ date, time, name }) {
-  // 96dpiで60pt = 80px、16pt = 21px、44pt = 59px
-  const W = 960, H = 540;
+async function generateWelcomeImage({ date, time, name }, W = 1920, H = 1080) {
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext('2d');
 
   const BLACK = 'NotoSansJP-Black';
   const THIN  = 'NotoSansJP-Thin';
-
-  // px換算（1pt = 96/72px）
-  const pt = v => Math.round(v * 96 / 72);
 
   // 背景
   ctx.fillStyle = '#FFFFFF';
@@ -94,12 +89,12 @@ async function generateWelcomeImage({ date, time, name }) {
   // 外枠
   ctx.strokeStyle = '#CCCCCC';
   ctx.lineWidth = 1.5;
-  ctx.strokeRect(40, 40, W - 80, H - 80);
+  ctx.strokeRect(W*0.021, H*0.037, W*0.958, H*0.926);
 
   // 内枠
   ctx.strokeStyle = '#E8E8E8';
   ctx.lineWidth = 1;
-  ctx.strokeRect(56, 56, W - 112, H - 112);
+  ctx.strokeRect(W*0.029, H*0.052, W*0.942, H*0.896);
 
   // 背景画像
   try {
@@ -114,41 +109,41 @@ async function generateWelcomeImage({ date, time, name }) {
   ctx.textAlign = 'center';
 
   // --- WELCOME（Black × 2枚重ね、50%透過）---
-  const wSize = pt(80);
+  const wSize = Math.round(H * 0.13);
   ctx.font = `900 ${wSize}px "${BLACK}"`;
 
   // 1枚目（薄め）
-  ctx.fillStyle = 'rgba(64, 64, 64, 0.50)';
-  ctx.fillText('Welcome', W / 2 + 6, 310);
+  ctx.fillStyle = 'rgba(64, 64, 64, 0.35)';
+  ctx.fillText('Welcome', W / 2 + H*0.006, H*0.30);
 
   // 2枚目（通常）
   ctx.fillStyle = 'rgba(64, 64, 64, 0.50)';
-  ctx.fillText('Welcome', W / 2, 310);
+  ctx.fillText('Welcome', W / 2, H*0.29);
 
   // --- 日付・時間 ---
-  ctx.font = `100 ${pt(32)}px "${THIN}"`;
+  ctx.font = `100 ${Math.round(H*0.052)}px "${THIN}"`;
   ctx.fillStyle = '#404040';
-  ctx.fillText(`${date}　${time}`, W / 2, 430);
+  ctx.fillText(`${date}　${time}`, W / 2, H*0.42);
 
   // --- 名前 ---
-  ctx.font = `100 ${pt(52)}px "${THIN}"`;
+  ctx.font = `100 ${Math.round(H*0.093)}px "${THIN}"`;
   ctx.fillStyle = '#404040';
-  ctx.fillText(name, W / 2, 540);
+  ctx.fillText(name, W / 2, H*0.535);
 
   // --- メッセージ（改行対応） ---
-  ctx.font = `100 ${pt(24)}px "${THIN}"`;
+  ctx.font = `100 ${Math.round(H*0.040)}px "${THIN}"`;
   ctx.fillStyle = '#404040';
   const lines = WELCOME_MESSAGE.split('\n');
-  const lineH = pt(16) * 1.9;
-  const msgStartY = 670;
+  const lineH = Math.round(H*0.040) * 1.9;
+  const msgStartY = H*0.66;
   lines.forEach((line, i) => {
     ctx.fillText(line, W / 2, msgStartY + i * lineH);
   });
 
   // --- フッター ---
-  ctx.font = `100 ${pt(16)}px "${THIN}"`;
+  ctx.font = `100 ${Math.round(H*0.028)}px "${THIN}"`;
   ctx.fillStyle = '#BFBFBF';
-  ctx.fillText(COMPANY_NAME, W / 2, 980);
+  ctx.fillText(COMPANY_NAME, W / 2, H*0.93);
 
   return canvas.toBuffer('image/png');
 }
@@ -174,8 +169,10 @@ client.on('messageCreate', async (message) => {
   }
 
   try {
-    const imgBuffer = await generateWelcomeImage(parsed);
-    const attachment = new AttachmentBuilder(imgBuffer, { name: 'welcome.png' });
+    const fullBuffer  = await generateWelcomeImage(parsed, 1920, 1080);
+    const thumbBuffer = await generateWelcomeImage(parsed, 960, 540);
+    const fullFile  = new AttachmentBuilder(fullBuffer,  { name: 'welcome.png' });
+    const thumbFile = new AttachmentBuilder(thumbBuffer, { name: 'welcome_thumb.png' });
 
     // 投稿者のロールカラーを取得
     const member = message.member;
@@ -188,9 +185,9 @@ client.on('messageCreate', async (message) => {
         `${parsed.date.replace('/', '月')}日 ${parsed.time.replace(':', '時')} ${parsed.name}のウェルカムを作成したよ！\n\n` +
         `<@&${NOTIFY_ROLE_ID}> みんなにも共有しておくね！`
       )
-      .setImage('attachment://welcome.png');
+      .setImage('attachment://welcome_thumb.png');
 
-    await message.reply({ embeds: [embed], files: [attachment] });
+    await message.reply({ embeds: [embed], files: [fullFile, thumbFile] });
   } catch (err) {
     console.error(err);
     await message.reply('❌ 画像生成中にエラーが発生しました');
