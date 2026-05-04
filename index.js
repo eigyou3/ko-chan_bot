@@ -1,7 +1,6 @@
 const { Client, GatewayIntentBits, AttachmentBuilder, EmbedBuilder } = require('discord.js');
-const { createCanvas, GlobalFonts } = require('@napi-rs/canvas');
+const { createCanvas, GlobalFonts, loadImage } = require('@napi-rs/canvas');
 const path = require('path');
-const { loadImage } = require('@napi-rs/canvas');
 
 // ==============================
 // フォント登録
@@ -16,15 +15,15 @@ try {
 }
 
 // ==============================
-// カスタマイズ設定
+// 設定
 // ==============================
 const COMPANY_NAME = '- KOMAI HOME -';
 const NOTIFY_ROLE_ID = '1496147336043298866';
-const BG_OPACITY = 0.08; // 背景画像の透過度（0.0〜1.0）
+const BG_OPACITY = 0.08;
 const WELCOME_MESSAGE = 'ご来場お待ちしておりました。\n担当スタッフがすぐにご案内いたします。';
 
 // ==============================
-// Discord クライアント
+// Discord
 // ==============================
 const client = new Client({
   intents: [
@@ -73,17 +72,28 @@ function parseVisitorMessage(text) {
 }
 
 // ==============================
-// 画像生成
+// 画像生成（高解像度 + シャープ化）
 // ==============================
 async function generateWelcomeImage({ date, time, name }, W = 1920, H = 1080) {
-  const canvas = createCanvas(W, H);
+  const SCALE = 2; // ★解像度アップ（重要）
+
+  const canvas = createCanvas(W * SCALE, H * SCALE);
   const ctx = canvas.getContext('2d');
+
+  ctx.scale(SCALE, SCALE);
+
+  // ★描画品質向上
+  ctx.antialias = 'subpixel';
+  ctx.patternQuality = 'best';
+  ctx.quality = 'best';
+  ctx.textDrawingMode = 'path';
 
   const BLACK = 'NotoSansJP-Black';
   const THIN  = 'NotoSansJP-Thin';
 
-  // px換算（1pt = 96/72px）
   const pt = v => Math.round(v * 96 / 72);
+
+  const centerX = Math.round(W / 2);
 
   // 背景
   ctx.fillStyle = '#FFFFFF';
@@ -92,12 +102,22 @@ async function generateWelcomeImage({ date, time, name }, W = 1920, H = 1080) {
   // 外枠
   ctx.strokeStyle = '#CCCCCC';
   ctx.lineWidth = 1.5;
-  ctx.strokeRect(W*0.021, H*0.037, W*0.958, H*0.926);
+  ctx.strokeRect(
+    Math.round(W * 0.021),
+    Math.round(H * 0.037),
+    Math.round(W * 0.958),
+    Math.round(H * 0.926)
+  );
 
   // 内枠
   ctx.strokeStyle = '#E8E8E8';
   ctx.lineWidth = 1;
-  ctx.strokeRect(W*0.029, H*0.052, W*0.942, H*0.896);
+  ctx.strokeRect(
+    Math.round(W * 0.029),
+    Math.round(H * 0.052),
+    Math.round(W * 0.942),
+    Math.round(H * 0.896)
+  );
 
   // 背景画像
   try {
@@ -111,48 +131,48 @@ async function generateWelcomeImage({ date, time, name }, W = 1920, H = 1080) {
 
   ctx.textAlign = 'center';
 
-  // --- WELCOME（Black × 2枚重ね、50%透過）---
+  // Welcome
   const wSize = pt(80);
   ctx.font = `900 ${wSize}px "${BLACK}"`;
 
-  // 1枚目（薄め）
-  ctx.fillStyle = 'rgba(64, 64, 64, 0.50)';
-  ctx.fillText('Welcome', W / 2 + 6, 310);
+  ctx.fillStyle = 'rgba(64,64,64,0.50)';
+  ctx.fillText('Welcome', centerX + 6, Math.round(310));
 
-  // 2枚目（通常）
-  ctx.fillStyle = 'rgba(64, 64, 64, 0.50)';
-  ctx.fillText('Welcome', W / 2, 310);
+  ctx.fillStyle = 'rgba(64,64,64,0.50)';
+  ctx.fillText('Welcome', centerX, Math.round(310));
 
-  // --- 日付・時間 ---
+  // 日付時間
   ctx.font = `100 ${pt(32)}px "${THIN}"`;
   ctx.fillStyle = '#404040';
-  ctx.fillText(`${date}　${time}`, W / 2, 430);
+  ctx.fillText(`${date}　${time}`, centerX, Math.round(430));
 
-  // --- 名前 ---
+  // 名前
   ctx.font = `100 ${pt(52)}px "${THIN}"`;
-  ctx.fillStyle = '#404040';
-  ctx.fillText(name, W / 2, 540);
+  ctx.fillText(name, centerX, Math.round(540));
 
-  // --- メッセージ（改行対応） ---
+  // メッセージ
   ctx.font = `100 ${pt(24)}px "${THIN}"`;
-  ctx.fillStyle = '#404040';
   const lines = WELCOME_MESSAGE.split('\n');
   const lineH = pt(16) * 1.9;
   const msgStartY = 670;
+
   lines.forEach((line, i) => {
-    ctx.fillText(line, W / 2, msgStartY + i * lineH);
+    ctx.fillText(line, centerX, Math.round(msgStartY + i * lineH));
   });
 
-  // --- フッター ---
+  // フッター
   ctx.font = `100 ${pt(16)}px "${THIN}"`;
   ctx.fillStyle = '#BFBFBF';
-  ctx.fillText(COMPANY_NAME, W / 2, 980);
+  ctx.fillText(COMPANY_NAME, centerX, Math.round(980));
 
-  return canvas.toBuffer('image/png');
+  // ★ JPG出力（高品質）
+  return canvas.toBuffer('image/jpeg', {
+    quality: 1.0,
+  });
 }
 
 // ==============================
-// Discord イベント
+// Discordイベント
 // ==============================
 client.once('ready', () => {
   console.log(`✅ Bot起動: ${client.user.tag}`);
@@ -161,8 +181,10 @@ client.once('ready', () => {
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
-  const hasDAndName = /[\d０-９]{1,2}[\/／月][\d０-９]{1,2}/.test(message.content)
-    && /様|さん/.test(message.content);
+  const hasDAndName =
+    /[\d０-９]{1,2}[\/／月][\d０-９]{1,2}/.test(message.content) &&
+    /様|さん/.test(message.content);
+
   if (!hasDAndName) return;
 
   const parsed = parseVisitorMessage(message.content);
@@ -172,10 +194,9 @@ client.on('messageCreate', async (message) => {
   }
 
   try {
-    const fullBuffer = await generateWelcomeImage(parsed, 1920, 1080);
-    const fullFile  = new AttachmentBuilder(fullBuffer, { name: 'welcome.png' });
+    const buffer = await generateWelcomeImage(parsed, 1920, 1080);
+    const file = new AttachmentBuilder(buffer, { name: 'welcome.jpg' });
 
-    // 投稿者のロールカラーを取得
     const member = message.member;
     const roleColor = member?.roles?.color?.hexColor ?? '#808080';
 
@@ -186,9 +207,13 @@ client.on('messageCreate', async (message) => {
         `${parsed.date.replace('/', '月')}日 ${parsed.time.replace(':', '時')}分 ${parsed.name}のウェルカムを作成したよ！\n\n` +
         `<@&${NOTIFY_ROLE_ID}> みんなにも共有しておくね！`
       )
-      .setImage('attachment://welcome.png');
+      .setImage('attachment://welcome.jpg');
 
-    await message.reply({ embeds: [embed], files: [fullFile] });
+    await message.reply({
+      embeds: [embed],
+      files: [file],
+    });
+
   } catch (err) {
     console.error(err);
     await message.reply('❌ 画像生成中にエラーが発生しました');
