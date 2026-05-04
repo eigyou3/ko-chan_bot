@@ -150,7 +150,7 @@ async function generateWelcomeImage({ date, time, name }, W = 1920, H = 1080) {
   ctx.fillStyle = '#BFBFBF';
   ctx.fillText(COMPANY_NAME, W / 2, 980);
 
-  const buffer = canvas.toBuffer('image/png');
+  const buffer = canvas.toBuffer('image/jpg');
   canvas.width = 0;
   canvas.height = 0;
   return buffer;
