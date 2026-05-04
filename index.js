@@ -178,7 +178,7 @@ client.on('messageCreate', async (message) => {
 
   try {
     const fullBuffer = await generateWelcomeImage(parsed, 1920, 1080);
-    const fullFile  = new AttachmentBuilder(fullBuffer, { name: 'welcome.png' });
+    const fullFile  = new AttachmentBuilder(fullBuffer, { name: 'welcome.jpg' });
 
     // 投稿者のロールカラーを取得
     const member = message.member;
