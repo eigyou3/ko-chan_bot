@@ -1,20 +1,72 @@
-// ...（前段のrequireやparseVisitorMessageは変更なし）
+const { Client, GatewayIntentBits, AttachmentBuilder, EmbedBuilder } = require('discord.js');
+const { createCanvas, GlobalFonts } = require('@napi-rs/canvas');
+const path = require('path');
+const { loadImage } = require('@napi-rs/canvas');
 
 // ==============================
-// 画像生成
+// フォント登録（ここを元に戻しました）
+// ==============================
+const fontBase = path.join(__dirname, 'node_modules', '@fontsource', 'noto-sans-jp', 'files');
+try {
+  GlobalFonts.registerFromPath(path.join(fontBase, 'noto-sans-jp-japanese-900-normal.woff'), 'NotoSansJP-Black');
+  GlobalFonts.registerFromPath(path.join(fontBase, 'noto-sans-jp-japanese-100-normal.woff'), 'NotoSansJP-Thin');
+  console.log('✅ フォント読み込み成功');
+} catch (e) {
+  console.warn('⚠️ フォント読み込み失敗:', e.message);
+}
+
+// ==============================
+// カスタマイズ設定
+// ==============================
+const COMPANY_NAME = '- KOMAI HOME -';
+const NOTIFY_ROLE_ID = '1496147336043298866';
+const BG_OPACITY = 0.08; 
+const WELCOME_MESSAGE = 'ご来場お待ちしておりました。\n担当スタッフがすぐにご案内いたします。';
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
+});
+
+// --- parseVisitorMessage 関数は元のままなので省略 ---
+function parseVisitorMessage(text) {
+  const normalized = text.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)).replace(/[／]/g, '/').replace(/[：]/g, ':').replace(/　/g, ' ').trim();
+  const dateMatch = normalized.match(/(\d{1,2})[\/月](\d{1,2})(?:日)?/);
+  const timeMatch = normalized.match(/(\d{1,2}):(\d{2})|(\d{1,2})時(\d{2})?(?:分)?/);
+  const nameMatch = normalized.match(/([^\s\d:/月日時分]+(?:様|さん))/);
+  if (!dateMatch || !nameMatch) return null;
+  const month = parseInt(dateMatch[1]);
+  const day   = parseInt(dateMatch[2]);
+  let hour = '00', minute = '00';
+  if (timeMatch) {
+    if (timeMatch[1] !== undefined) {
+      hour = timeMatch[1].padStart(2, '0');
+      minute = timeMatch[2].padStart(2, '0');
+    } else {
+      hour = timeMatch[3].padStart(2, '0');
+      minute = (timeMatch[4] || '00').padStart(2, '0');
+    }
+  }
+  return { date: `${month}/${day}`, time: `${hour}:${minute}`, name: nameMatch[1] };
+}
+
+// ==============================
+// 画像生成（JPG対応 & 内部解像度アップ）
 // ==============================
 async function generateWelcomeImage({ date, time, name }, W = 1920, H = 1080) {
-  // ぼやけ対策：内部的に2倍の解像度で描画し、出力時に高画質なJPGにする
+  // ぼやけ対策：内部的に2倍で描いて、出力時に1920x1080にすることで文字をくっきりさせます
   const scale = 2;
   const canvas = createCanvas(W * scale, H * scale);
   const ctx = canvas.getContext('2d');
-  ctx.scale(scale, scale); // 全ての描画を2倍サイズに自動スケール
+  ctx.scale(scale, scale); 
 
   const BLACK = 'NotoSansJP-Black';
   const THIN  = 'NotoSansJP-Thin';
   const pt = v => Math.round(v * 96 / 72);
 
-  // --- 描画処理（元の座標とフォント設定を完全に維持） ---
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, W, H);
 
@@ -62,24 +114,40 @@ async function generateWelcomeImage({ date, time, name }, W = 1920, H = 1080) {
   ctx.fillStyle = '#BFBFBF';
   ctx.fillText(COMPANY_NAME, W / 2, 980);
 
-  // JPEG形式で、画質100%で出力
+  // JPEGで書き出し（画質100）
   return canvas.toBuffer('image/jpeg', { quality: 100 });
 }
 
-// ==============================
-// Discord イベント
-// ==============================
-// ...（中略）
+client.once('ready', () => {
+  console.log(`✅ Bot起動: ${client.user.tag}`);
+});
+
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+
+  const hasDAndName = /[\d０-９]{1,2}[\/／月][\d０-９]{1,2}/.test(message.content) && /様|さん/.test(message.content);
+  if (!hasDAndName) return;
+
+  const parsed = parseVisitorMessage(message.content);
+  if (!parsed) return;
+
   try {
     const fullBuffer = await generateWelcomeImage(parsed, 1920, 1080);
-    // ファイル名を welcome.jpg に変更
-    const fullFile  = new AttachmentBuilder(fullBuffer, { name: 'welcome.jpg' });
+    // ファイル名を .jpg に変更
+    const fullFile = new AttachmentBuilder(fullBuffer, { name: 'welcome.jpg' });
 
-    // ...（中略）
+    const member = message.member;
+    const roleColor = member?.roles?.color?.hexColor ?? '#808080';
+
     const embed = new EmbedBuilder()
       .setColor(roleColor)
-      .setDescription(`...作成したよ！`) // メッセージはお好みで
-      .setImage('attachment://welcome.jpg'); // ここも jpg に合わせる
+      .setDescription(`<@${message.author.id}> !\n${parsed.date.replace('/', '月')}日 ${parsed.time.replace(':', '時')}分 ${parsed.name}のウェルカムを作成したよ！\n\n<@&${NOTIFY_ROLE_ID}> みんなにも共有しておくね！`)
+      .setImage('attachment://welcome.jpg'); // 添付ファイル名に合わせる
 
     await message.reply({ embeds: [embed], files: [fullFile] });
-// ...
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+client.login(process.env.DISCORD_TOKEN);
