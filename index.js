@@ -19,7 +19,7 @@ try {
 // ==============================
 const COMPANY_NAME = '- KOMAI HOME -';
 const NOTIFY_ROLE_ID = '1496147336043298866';
-const BG_OPACITY = 0.08;
+const BG_OPACITY = 0.15;
 const WELCOME_MESSAGE = 'ご来場お待ちしておりました。\n担当スタッフがすぐにご案内いたします。';
 
 // ==============================
