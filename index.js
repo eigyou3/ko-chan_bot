@@ -1,3 +1,4 @@
+const http = require('http');
 const { Client, GatewayIntentBits, AttachmentBuilder, EmbedBuilder } = require('discord.js');
 const { createCanvas, GlobalFonts, loadImage } = require('@napi-rs/canvas');
 const path = require('path');
@@ -9,6 +10,7 @@ const fontBase = path.join(__dirname, 'node_modules', '@fontsource', 'noto-sans-
 try {
   GlobalFonts.registerFromPath(path.join(fontBase, 'noto-sans-jp-japanese-900-normal.woff'), 'NotoSansJP-Black');
   GlobalFonts.registerFromPath(path.join(fontBase, 'noto-sans-jp-japanese-100-normal.woff'), 'NotoSansJP-Thin');
+  
   console.log('✅ フォント読み込み成功');
 } catch (e) {
   console.warn('⚠️ フォント読み込み失敗:', e.message);
@@ -218,6 +220,15 @@ client.on('messageCreate', async (message) => {
     console.error(err);
     await message.reply('❌ 画像生成中にエラーが発生しました');
   }
+});
+
+// ダミーHTTPサーバー（Render無料枠用）
+const PORT = process.env.PORT || 3000;
+http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end('OK');
+}).listen(PORT, () => {
+  console.log(`✅ HTTPサーバー起動: port ${PORT}`);
 });
 
 client.login(process.env.DISCORD_TOKEN);
