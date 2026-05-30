@@ -123,12 +123,12 @@ async function generateWelcomeImage({ date, time, name }, W = 1920, H = 1080) {
 
   // 背景画像
   try {
-    const bgImg = await loadImage(path.join(__dirname, 'bg.png'));
+    const bgImg = await loadImage(path.join(__dirname, 'bg1.png'));
     ctx.globalAlpha = BG_OPACITY;
     ctx.drawImage(bgImg, 0, 0, W, H);
     ctx.globalAlpha = 1.0;
   } catch (e) {
-    console.warn('bg.png読み込みスキップ:', e.message);
+    console.warn('bg1.png読み込みスキップ:', e.message);
   }
 
   ctx.textAlign = 'center';
